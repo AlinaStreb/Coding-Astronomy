@@ -1,0 +1,33 @@
+# Python code to predict the position of a moving asteroid/satellite at a specific time based on two observational positions. Input manually inside the code
+
+from datetime import datetime, timedelta
+
+# Define the two observational positions and times
+observation1 = {
+    'time': datetime(2021, 3, 19, 8, 29, 46),
+    'ra': 182.3091872,
+    'dec': 2.262113766
+}
+
+observation2 = {
+    'time': datetime(2021, 3, 19, 9, 5, 40),
+    'ra': 182.3047437,
+    'dec': 2.265994079
+}
+
+# Define the desired time to predict the position
+desired_time = datetime(2021, 3, 19, 12, 23, 45)
+
+# Calculate the time difference between the two observations
+time_diff = observation2['time'] - observation1['time']
+
+# Calculate the fraction of time between the two observations for the desired time
+desired_time_diff = desired_time - observation1['time']
+fraction_of_time = desired_time_diff / time_diff
+
+# Interpolate the RA and Dec positions
+predicted_ra = observation1['ra'] + fraction_of_time * (observation2['ra'] - observation1['ra'])
+predicted_dec = observation1['dec'] + fraction_of_time * (observation2['dec'] - observation1['dec'])
+
+# Print the predicted position
+print(f"Predicted position at {desired_time}: RA = {predicted_ra}, Dec = {predicted_dec}")
