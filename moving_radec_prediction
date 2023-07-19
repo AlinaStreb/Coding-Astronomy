@@ -1,0 +1,101 @@
+# The modified code for moving source that takes three observations into account and determines if the source from observation 3 
+# matches the predicted position based on observations 1 and 2:
+# Example: 
+# Enter the RA and Dec of observation 1 (hh:mm:ss.ss, dd:mm:ss.ss): 12:09:24.29 , 02:17:49.30
+# Enter the time of observation 1 (YYYY-MM-DD HH:MM:SS): 2021-03-19 08:29:46
+# Enter the RA and Dec of observation 2 (hh:mm:ss.ss, dd:mm:ss.ss): 12:09:23.18 , 02:17:58.11
+# Enter the time of observation 2 (YYYY-MM-DD HH:MM:SS): 2021-03-19 09:05:40
+# Enter the RA and Dec of observation 3 (hh:mm:ss.ss, dd:mm:ss.ss): 12:08:43.96 , 02:43:32.174
+# Enter the time of observation 3 (YYYY-MM-DD HH:MM:SS): 2021-05-01 08:29:46
+# Observation 3 matches prediction from observations 1 and 2: NO
+# The expected position of the source from observations 1 and 2 at time 2021-05-01 08:29:46 is:
+# RA = 12:09:23.18, Dec = 02:18:31.76
+# The distance from the expected position and the observed position is: 20.38 arcminutes.
+
+
+
+from datetime import datetime, timedelta
+import re
+import math
+
+# Prompt for input of RA and Dec for observation 1
+observation1_info = input("Enter the RA and Dec of observation 1 (hh:mm:ss.ss, dd:mm:ss.ss): ")
+observation1_time = input("Enter the time of observation 1 (YYYY-MM-DD HH:MM:SS): ")
+
+# Prompt for input of RA and Dec for observation 2
+observation2_info = input("Enter the RA and Dec of observation 2 (hh:mm:ss.ss, dd:mm:ss.ss): ")
+observation2_time = input("Enter the time of observation 2 (YYYY-MM-DD HH:MM:SS): ")
+
+# Prompt for input of RA and Dec for observation 3
+observation3_info = input("Enter the RA and Dec of observation 3 (hh:mm:ss.ss, dd:mm:ss.ss): ")
+observation3_time = input("Enter the time of observation 3 (YYYY-MM-DD HH:MM:SS): ")
+
+# Extract RA and Dec from the input strings
+observation1_ra, observation1_dec = re.split(r',', observation1_info.strip())
+observation2_ra, observation2_dec = re.split(r',', observation2_info.strip())
+observation3_ra, observation3_dec = re.split(r',', observation3_info.strip())
+
+# Convert input strings to datetime objects
+observation1_time = datetime.strptime(observation1_time, "%Y-%m-%d %H:%M:%S")
+observation2_time = datetime.strptime(observation2_time.strip(), "%Y-%m-%d %H:%M:%S")
+observation3_time = datetime.strptime(observation3_time, "%Y-%m-%d %H:%M:%S")
+
+# Convert RA and Dec from sexagesimal to decimal degrees
+def sexagesimal_to_decimal(sexagesimal):
+    parts = sexagesimal.split(":")
+    hours = float(parts[0])
+    minutes = float(parts[1])
+    seconds = float(parts[2])
+    decimal = hours + minutes / 60 + seconds / 3600
+    return decimal
+
+observation1_ra = sexagesimal_to_decimal(observation1_ra)
+observation1_dec = sexagesimal_to_decimal(observation1_dec)
+observation2_ra = sexagesimal_to_decimal(observation2_ra)
+observation2_dec = sexagesimal_to_decimal(observation2_dec)
+observation3_ra = sexagesimal_to_decimal(observation3_ra)
+observation3_dec = sexagesimal_to_decimal(observation3_dec)
+
+# Calculate the time differences between the observations
+time_diff_1_2 = observation2_time - observation1_time
+time_diff_1_3 = observation3_time - observation1_time
+
+# Calculate the fraction of time between the observations for the desired positions
+approx_time_diff_1_2 = (observation3_ra - observation1_ra) / (observation2_ra - observation1_ra)
+approx_time_diff_1_3 = (observation2_ra - observation1_ra) / (observation3_ra - observation1_ra)
+
+# Interpolate the RA and Dec positions based on observations 1 and 2
+predicted_ra_1_2 = observation1_ra + approx_time_diff_1_2 * (observation2_ra - observation1_ra)
+predicted_dec_1_2 = observation1_dec + approx_time_diff_1_2 * (observation2_dec - observation1_dec)
+
+# Interpolate the RA and Dec positions based on observations 1 and 3
+predicted_ra_1_3 = observation1_ra + approx_time_diff_1_3 * (observation3_ra - observation1_ra)
+predicted_dec_1_3 = observation1_dec + approx_time_diff_1_3 * (observation3_dec - observation1_dec)
+
+# Calculate the distance between the predicted position from observations 1 and 2 and observation 3
+distance_arcmin = round(math.sqrt((predicted_ra_1_2 - observation3_ra) ** 2 + (predicted_dec_1_2 - observation3_dec) ** 2) * 60, 2)
+
+# Determine if the source from observation 3 matches the predicted position from observations 1 and 2
+if distance_arcmin <= 1:
+    result = "YES"
+else:
+    result = "NO"
+
+# Convert decimal RA and Dec to sexagesimal format
+def decimal_to_sexagesimal(decimal):
+    hours = int(decimal)
+    minutes = int((decimal - hours) * 60)
+    seconds = (decimal - hours - minutes / 60) * 3600
+    sexagesimal = f"{hours:02d}:{minutes:02d}:{seconds:.2f}"
+    return sexagesimal
+
+predicted_ra_1_3 = decimal_to_sexagesimal(predicted_ra_1_3)
+predicted_dec_1_3 = decimal_to_sexagesimal(predicted_dec_1_3)
+
+# Print the results
+print(f"Observation 3 matches prediction from observations 1 and 2: {result}")
+if result == "NO":
+    print(f"The expected position of the source from observations 1 and 2 at time {observation3_time.strftime('%Y-%m-%d %H:%M:%S')} is:")
+    print(f"RA = {predicted_ra_1_3}, Dec = {predicted_dec_1_3}")
+    print(f"The distance from the expected position and the observed position is: {distance_arcmin} arcminutes.")
+
