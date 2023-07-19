@@ -1,0 +1,58 @@
+# Python code to predict the position of a moving asteroid/satellite at a specific time based on known two observational positions.
+# Example of input:
+# Enter the RA of observation 1:     182.3512333 , 2.297141821         
+# Enter the RA of observation 2:     182.3465824 , 2.299475292     
+# Enter the time of observation 1 (YYYY-MM-DD HH:MM:SS): 2021-03-19 08:29:46
+#  Enter the time of observation 2 (YYYY-MM-DD HH:MM:SS): 2021-03-19 09:05:40
+# Enter the desired time (YYYY-MM-DD HH:MM:SS): 2021-03-19 09:41:46
+
+
+from datetime import datetime, timedelta
+
+# Prompt for input of RA and Dec for observation 1
+
+observation1_ra, observation1_dec = input("Enter the RA and Dec of observation 1 (comma-separated): ").split(",")
+
+# Prompt for input of RA and Dec for observation 2
+observation2_ra, observation2_dec = input("Enter the RA and Dec of observation 2 (comma-separated): ").split(",")
+
+observation1_ra = float(observation1_ra.strip())
+observation1_dec = float(observation1_dec.strip())
+observation2_ra = float(observation2_ra.strip())
+observation2_dec = float(observation2_dec.strip())
+
+observation1_time = input("Enter the time of observation 1 (YYYY-MM-DD HH:MM:SS): ")
+observation2_time = input("Enter the time of observation 2 (YYYY-MM-DD HH:MM:SS): ")
+desired_time = input("Enter the desired time (YYYY-MM-DD HH:MM:SS): ")
+
+# Convert input strings to datetime objects
+observation1_time = datetime.strptime(observation1_time, "%Y-%m-%d %H:%M:%S")
+observation2_time = datetime.strptime(observation2_time, "%Y-%m-%d %H:%M:%S")
+desired_time = datetime.strptime(desired_time, "%Y-%m-%d %H:%M:%S")
+
+observation1 = {
+    'time': observation1_time,
+    'ra': observation1_ra,
+    'dec': observation1_dec
+}
+
+observation2 = {
+    'time': observation2_time,
+    'ra': observation2_ra,
+    'dec': observation2_dec
+}
+
+# Calculate the time difference between the two observations
+time_diff = observation2['time'] - observation1['time']
+
+# Calculate the fraction of time between the two observations for the desired time
+desired_time_diff = desired_time - observation1['time']
+fraction_of_time = desired_time_diff / time_diff
+
+# Interpolate the RA and Dec positions
+predicted_ra = observation1['ra'] + fraction_of_time * (observation2['ra'] - observation1['ra'])
+predicted_dec = observation1['dec'] + fraction_of_time * (observation2['dec'] - observation1['dec'])
+
+# Print the predicted position
+print(f"Predicted position at {desired_time}: RA = {predicted_ra}, Dec = {predicted_dec}")
+
